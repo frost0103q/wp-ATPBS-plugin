@@ -16,7 +16,7 @@
                     $base_page_id = get_option('_j_basepage_id');
                 ?>
                 <select id="base_page_select" name="base_page_select" class="j-select2 form-control">
-                    <option value="0">Select a base page <?=$base_page_id ?></option>
+                    <option value="0">Select a base page</option>
                     <?php
                         if ($pages){
                             foreach ( $pages as $page ) {?>

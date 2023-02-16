@@ -174,7 +174,8 @@ if ( ! class_exists( 'ATPBS_Controller' ) ) {
 					$_c1 = strpos($cornerstone_main_content, '{"_type":"accordion"');
 					$_s1 = strrpos($cornerstone_main_content, 'accordion_item_header_content');
 					$_s2 = strpos($cornerstone_main_content, '}]},', $_s1);
-					$faq_cornerstone_data_part = substr($cornerstone_main_content,$_c1, $_s2-$_c1+strlen('}]},'));
+					$faq_cornerstone_data_part = substr($cornerstone_main_content,$_c1, $_s2-$_c1-1);
+					// $faq_cornerstone_data_part = substr($cornerstone_main_content,$_c1, $_s2-$_c1+strlen('}]},'));
 					$standard_cornerstone_content = str_replace($faq_cornerstone_data_part,'__faq__',$standard_cornerstone_content);
 					
 					// -----------------postmeta css generate tss-------------------------- 
@@ -205,21 +206,24 @@ if ( ! class_exists( 'ATPBS_Controller' ) ) {
 						}
 					}
 					$faq_cornerstone_content = rtrim($faq_cornerstone_content, " ,");
-					$faq_cornerstone_content .= ']},';
+					$faq_cornerstone_content .= ']}';
 					$faq_content .= '[/cs_element_accordion]';
 					$standard_content = str_replace('__faq__',$faq_content,$standard_content);
 					$standard_cornerstone_content = str_replace('__faq__',$faq_cornerstone_content,$standard_cornerstone_content);
-					
 					$tss_arr = explode ('},"',$_cs_generated_tss);
 					$tss_index_arr = [];
 					foreach ($tss_arr as $tkey => $tvalue) {
 						$t_index = substr(strstr(stristr($tvalue,"el:"), '"', true),3);
-						if ($t_index !== "") $tss_index_arr[] = $t_index;
+						if (preg_match('/\d+/', $t_index, $mat)) $tss_index_arr[] = $mat[0];
 					}
 				
 					$new_tss_index_arr = array_map(function($n) {
 							global $_aid;
-							if ($n > $faq_accordian_item_begin_id ) {return $n - $faq_item_count + $_aid;} else {return $n;}
+							if ($n > $faq_accordian_item_begin_id ) {
+								return $n - $faq_item_count + $_aid;
+							} else {
+								return $n;
+							}
 						}, $tss_index_arr
 					);
 					$old_tss_el_arr = array_map(function($n) {
@@ -235,7 +239,6 @@ if ( ! class_exists( 'ATPBS_Controller' ) ) {
 				}
 			
 				$new_cs_generated_tss = str_replace('\"',"'" ,$_cs_generated_tss);
-			
 				$new_content = str_replace('{CITY}',$__cityName__,$standard_content);
 				$new_content = str_replace('{STATE}',$__stateName__,$new_content);
 				$new_content = str_replace('{KEYWORD}',$__keyword__ ,$new_content);
@@ -292,8 +295,8 @@ if ( ! class_exists( 'ATPBS_Controller' ) ) {
 				);
 			
 				update_post_meta( $new_post_id, '_cornerstone_data', addslashes($new_cornerstone_content));
-				// update_post_meta( $new_post_id, '_cs_generated_tss', 'new_cs_generated_tss' );
-				update_post_meta( $new_post_id, '_cs_generated_tss', $new_cs_generated_tss );
+				
+				// update_post_meta( $new_post_id, '_cs_generated_tss', $new_cs_generated_tss );
 				update_post_meta( $new_post_id, '_j_keyword', $__keyword__ );
 				update_post_meta( $new_post_id, '_j_cityName', $__cityName__ );
 				update_post_meta( $new_post_id, '_j_stateName', $__stateName__ );
@@ -304,12 +307,11 @@ if ( ! class_exists( 'ATPBS_Controller' ) ) {
 					$result_msg = "Post $new_post_id is published successfully. Click <a href='".get_permalink($new_post_id)."'>here</a> to visit this page.";
 					$result = true;
 				}
-				// return $slug;
 			}else{
 				$result = false;
 				$error_msg = "Base Page ID Error";
 			}
-			return wp_send_json(array('result'=>$result,'error_msg' => $error_msg,'result_msg'=> $result_msg, 'debug_res'=>$faq_tss_content)); 
+			return wp_send_json(array('result'=>$result,'error_msg' => $error_msg,'result_msg'=> $result_msg, 'debug_res'=>$base_page_id)); 
 		}
 		
 		public function check_jwt_token(){
